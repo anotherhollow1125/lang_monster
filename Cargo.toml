@@ -1,0 +1,13 @@
+[package]
+name = "p0kemon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.5.4", features = ["derive"] }
+dialoguer = "0.11.0"
+indicatif = "0.17.8"
+console = "0.15.8"
+anyhow = "1.0.82"
