@@ -12,6 +12,9 @@ use scenes::{encolor, scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scen
 mod message_box;
 use message_box::print_messages;
 
+mod progress;
+use progress::progress;
+
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum TextContinue {
     Auto,
@@ -97,6 +100,19 @@ fn main() -> Result<()> {
         term1.show_cursor().unwrap();
         std::process::exit(0);
     })?;
+
+    progress(
+        100,
+        interval,
+        "アセットダウンロード...".to_string(),
+        "アセットダウンロード完了".to_string(),
+    );
+    progress(
+        300,
+        interval,
+        "ワールド生成中...".to_string(),
+        "ワールド生成完了".to_string(),
+    );
 
     let (message_blocks, picture) = scene_1();
     print_messages(&term, interval, skip, message_blocks, &picture)?;
