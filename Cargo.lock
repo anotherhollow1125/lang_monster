@@ -216,6 +216,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "lang_monster"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "console",
+ "ctrlc",
+ "dialoguer",
+ "indicatif",
+ "regex",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -256,19 +269,6 @@ name = "number_prefix"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
-
-[[package]]
-name = "p0kemon"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "console",
- "ctrlc",
- "dialoguer",
- "indicatif",
- "regex",
-]
 
 [[package]]
 name = "portable-atomic"

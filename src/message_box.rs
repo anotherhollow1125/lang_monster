@@ -6,7 +6,6 @@ use std::thread;
 use std::time::Duration;
 
 const PROMPT: char = '\u{25bc}';
-const INTERVAL: Duration = Duration::from_millis(100);
 
 #[derive(Debug, Clone)]
 enum Line {
@@ -185,7 +184,13 @@ impl<'a> Lines<'a> {
     }
 }
 
-pub fn print_messages(term: &Term, message_blocks: Vec<Vec<String>>, picture: &str) -> Result<()> {
+pub fn print_messages(
+    term: &Term,
+    interval: Duration,
+    skip: bool,
+    message_blocks: Vec<Vec<String>>,
+    picture: &str,
+) -> Result<()> {
     term.clear_screen()?;
     term.hide_cursor()?;
 
@@ -195,21 +200,26 @@ pub fn print_messages(term: &Term, message_blocks: Vec<Vec<String>>, picture: &s
         let mut lines = Lines::new(message_block, &picture);
         while let TS::Typing = lines.typing() {
             lines.print(&term, show_prompt, true)?;
-            thread::sleep(INTERVAL);
+            thread::sleep(interval);
             show_prompt = !show_prompt;
         }
 
         let term_2 = term.clone();
 
-        let handle = thread::spawn(move || term_2.read_key());
+        if skip {
+            thread::sleep(interval);
+        } else {
+            let handle = thread::spawn(move || term_2.read_key());
 
-        while !handle.is_finished() {
-            lines.print(&term, show_prompt, true)?;
-            thread::sleep(INTERVAL);
-            show_prompt = !show_prompt;
+            while !handle.is_finished() {
+                lines.print(&term, show_prompt, true)?;
+                thread::sleep(interval);
+                show_prompt = !show_prompt;
+            }
+
+            handle.join().unwrap()?;
         }
 
-        handle.join().unwrap()?;
         lines_wraped = Some(lines);
     }
 
