@@ -47,11 +47,12 @@ impl Line {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum TypingStatus {
     Typing,
+    Waiting,
     Done,
 }
 
 struct Lines<'a> {
-    messages: Vec<Vec<char>>,
+    message_block: Vec<Vec<char>>,
     lines_inner: LinesInner,
     status: TypingStatus,
     picture: &'a str,
@@ -77,19 +78,26 @@ impl LinesInner {
             }
         }
     }
+
+    fn is_full(&self) -> bool {
+        match (&self.first, &self.second) {
+            (&Line::Done(_), &Line::Done(_)) => true,
+            _ => false,
+        }
+    }
 }
 
 use TypingStatus as TS;
 
 impl<'a> Lines<'a> {
-    fn new(messages: Vec<String>, picture: &'a str) -> Self {
-        let mut messages: Vec<Vec<char>> = messages
+    fn new(message_block: Vec<String>, picture: &'a str) -> Self {
+        let mut message_block: Vec<Vec<char>> = message_block
             .into_iter()
             .map(|line| line.chars().rev().collect())
             .collect();
-        messages.reverse();
+        message_block.reverse();
         Self {
-            messages,
+            message_block,
             lines_inner: LinesInner {
                 first: Line::None,
                 second: Line::None,
@@ -102,18 +110,20 @@ impl<'a> Lines<'a> {
     fn prompt(&self) -> char {
         match self.status {
             TS::Typing => ' ',
+            TS::Waiting => PROMPT,
             TS::Done => PROMPT,
         }
     }
 
     fn typing(&mut self) -> TS {
         let Lines {
-            ref mut messages,
+            ref mut message_block,
             ref mut lines_inner,
             ..
         } = self;
 
-        let Some(message) = messages.last_mut() else {
+        let Some(message) = message_block.last_mut() else {
+            // reachable: message_block has only one line. (Because then lines_inner cannot become full.)
             self.status = TS::Done;
             return TS::Done;
         };
@@ -126,11 +136,17 @@ impl<'a> Lines<'a> {
         }
 
         if message.is_empty() {
-            messages.pop();
+            message_block.pop();
             target_line.into_done();
         }
 
-        TS::Typing
+        self.status = match (lines_inner.is_full(), message_block.is_empty()) {
+            (true, true) => TS::Done,
+            (true, false) => TS::Waiting,
+            _ => TS::Typing,
+        };
+
+        self.status
     }
 
     fn print(&self, term: &Term, show_prompt: bool, show_picture: bool) -> Result<()> {
@@ -198,26 +214,33 @@ pub fn print_messages(
     let mut lines_wraped = None;
     for message_block in message_blocks.into_iter() {
         let mut lines = Lines::new(message_block, &picture);
-        while let TS::Typing = lines.typing() {
+        loop {
+            let ts = lines.typing();
+
             lines.print(&term, show_prompt, true)?;
             thread::sleep(interval);
             show_prompt = !show_prompt;
-        }
 
-        let term_2 = term.clone();
+            match (ts, skip) {
+                (TS::Waiting | TS::Done, true) => thread::sleep(interval),
+                (TS::Waiting | TS::Done, false) => {
+                    let term_2 = term.clone();
+                    let handle = thread::spawn(move || term_2.read_key());
 
-        if skip {
-            thread::sleep(interval);
-        } else {
-            let handle = thread::spawn(move || term_2.read_key());
+                    while !handle.is_finished() {
+                        lines.print(&term, show_prompt, true)?;
+                        thread::sleep(interval);
+                        show_prompt = !show_prompt;
+                    }
 
-            while !handle.is_finished() {
-                lines.print(&term, show_prompt, true)?;
-                thread::sleep(interval);
-                show_prompt = !show_prompt;
+                    handle.join().unwrap()?;
+                }
+                _ => {}
             }
 
-            handle.join().unwrap()?;
+            if let TS::Done = ts {
+                break;
+            }
         }
 
         lines_wraped = Some(lines);
