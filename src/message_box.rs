@@ -7,6 +7,8 @@ use std::time::Duration;
 
 const PROMPT: char = '\u{25bc}';
 
+// 枠線の参考: https://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/u2500.html
+
 #[derive(Debug, Clone)]
 enum Line {
     None,
