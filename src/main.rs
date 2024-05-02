@@ -39,6 +39,10 @@ struct Config {
     /// ライバルの名前
     #[arg(short, long)]
     rival_name: Option<String>,
+
+    /// アセットダウンロード
+    #[arg(short, long, default_value_t = false)]
+    download_skip: bool,
 }
 
 fn ask_user_name() -> Result<String> {
@@ -85,6 +89,7 @@ fn main() -> Result<()> {
         speed,
         user_name: user_name_w,
         rival_name: rival_name_w,
+        download_skip,
     } = Config::parse();
 
     let interval = Duration::from_millis(speed);
@@ -101,18 +106,20 @@ fn main() -> Result<()> {
         std::process::exit(0);
     })?;
 
-    progress(
-        100,
-        interval,
-        "アセットダウンロード...".to_string(),
-        "アセットダウンロード完了".to_string(),
-    );
-    progress(
-        300,
-        interval,
-        "ワールド生成中...".to_string(),
-        "ワールド生成完了".to_string(),
-    );
+    if !download_skip {
+        progress(
+            100,
+            interval,
+            "アセットダウンロード...".to_string(),
+            "アセットダウンロード完了".to_string(),
+        );
+        progress(
+            300,
+            interval,
+            "ワールド生成中...".to_string(),
+            "ワールド生成完了".to_string(),
+        );
+    }
 
     let (message_blocks, picture) = scene_1();
     print_messages(&term, interval, skip, message_blocks, &picture)?;

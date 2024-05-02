@@ -15,7 +15,7 @@ pub fn encolor(s: String) -> String {
     let s = color_regex_block!(s, r"r\[(.*?)\]", red);
     let s = color_regex_block!(s, r"g\[(.*?)\]", green);
     let s = color_regex_block!(s, r"b\[(.*?)\]", blue);
-    let s = color_regex_block!(s, r"Y\[(.*?)\]", yellow);
+    let s = color_regex_block!(s, r"y\[(.*?)\]", yellow);
     let s = color_regex_block!(s, r"c\[(.*?)\]", cyan);
 
     s.to_string()
