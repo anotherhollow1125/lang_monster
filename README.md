@@ -1,6 +1,6 @@
 # CLI クレート 実験用プロジェクト
 
-[![asciicast](https://asciinema.org/a/657360.svg)](https://asciinema.org/a/657360)
+[![asciicast](https://asciinema.org/a/658022.svg)](https://asciinema.org/a/658022)
 
 下記クレートの各種機能を試してみるためのプロジェクト
 
