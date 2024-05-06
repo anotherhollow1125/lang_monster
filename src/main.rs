@@ -21,27 +21,34 @@ enum TextContinue {
     Manual,
 }
 
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum TextSpeed {
+    Fast,
+    Normal,
+    Slow,
+}
+
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 struct Config {
-    /// 文字送り
+    /// もじおくりモード
     #[arg(short, long, value_enum, default_value_t = TextContinue::Manual)]
     text_continue: TextContinue,
 
-    /// はなしのはやさ (milli seconds)
-    #[arg(short, long, default_value_t = 100)]
-    speed: u64,
+    /// はなしのはやさ
+    #[arg(short, long, value_enum, default_value_t = TextSpeed::Normal)]
+    speed: TextSpeed,
 
-    /// 主人公の名前
+    /// しゅじんこうのなまえ
     #[arg(short, long)]
     user_name: Option<String>,
 
-    /// ライバルの名前
+    /// ライバルのなまえ
     #[arg(short, long)]
     rival_name: Option<String>,
 
-    /// アセットダウンロード
-    #[arg(short, long, default_value_t = false)]
+    /// ダウンロードスキップ
+    #[arg(long, default_value_t = false)]
     download_skip: bool,
 }
 
@@ -92,7 +99,11 @@ fn main() -> Result<()> {
         download_skip,
     } = Config::parse();
 
-    let interval = Duration::from_millis(speed);
+    let interval = Duration::from_millis(match speed {
+        TextSpeed::Fast => 10,
+        TextSpeed::Normal => 100,
+        TextSpeed::Slow => 500,
+    });
     let skip = match text_continue {
         TextContinue::Auto => true,
         TextContinue::Manual => false,
