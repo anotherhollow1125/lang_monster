@@ -35,7 +35,7 @@ impl Line {
         }
     }
 
-    fn into_done(&mut self) {
+    fn done(&mut self) {
         match self {
             Line::None => {}
             Line::Typing(s) => {
@@ -82,10 +82,10 @@ impl LinesInner {
     }
 
     fn is_full(&self) -> bool {
-        match (&self.first, &self.second) {
-            (&Line::Done(_), &Line::Done(_)) => true,
-            _ => false,
-        }
+        matches!(
+            (&self.first, &self.second),
+            (&Line::Done(_), &Line::Done(_))
+        )
     }
 }
 
@@ -139,7 +139,7 @@ impl<'a> Lines<'a> {
 
         if message.is_empty() {
             message_block.pop();
-            target_line.into_done();
+            target_line.done();
         }
 
         self.status = match (lines_inner.is_full(), message_block.is_empty()) {
@@ -215,11 +215,11 @@ pub fn print_messages(
     let mut show_prompt = false;
     let mut lines_wraped = None;
     for message_block in message_blocks.into_iter() {
-        let mut lines = Lines::new(message_block, &picture);
+        let mut lines = Lines::new(message_block, picture);
         loop {
             let ts = lines.typing();
 
-            lines.print(&term, show_prompt, true)?;
+            lines.print(term, show_prompt, true)?;
             thread::sleep(interval);
             show_prompt = !show_prompt;
 
@@ -230,7 +230,7 @@ pub fn print_messages(
                     let handle = thread::spawn(move || term_2.read_key());
 
                     while !handle.is_finished() {
-                        lines.print(&term, show_prompt, true)?;
+                        lines.print(term, show_prompt, true)?;
                         thread::sleep(interval);
                         show_prompt = !show_prompt;
                     }
@@ -250,7 +250,7 @@ pub fn print_messages(
 
     if let Some(lines) = lines_wraped {
         term.clear_screen()?;
-        lines.print(&term, false, false)?;
+        lines.print(term, false, false)?;
     }
 
     term.show_cursor()?;
