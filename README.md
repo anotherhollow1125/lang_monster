@@ -1,6 +1,6 @@
 # CLI クレート 実験用プロジェクト
 
-<script src="https://asciinema.org/a/657360.js" id="asciicast-657360" async="true"></script>
+[![asciicast](https://asciinema.org/a/657360.svg)](https://asciinema.org/a/657360)
 
 下記クレートの各種機能を試してみるためのプロジェクト
 
